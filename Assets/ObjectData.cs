@@ -7,19 +7,19 @@ public class ObjectData : MonoBehaviour
     [Inject]
     public void Construct(IHologramCollection hologramCatalog, ILogger log)
     {
-        HologramCatalog = hologramCatalog;
-        this.log = log;
+        _hologramCatalog = hologramCatalog;
+        _log = log;
     }
 
-    IHologramCollection HologramCatalog;
-    private ILogger log;
+    private IHologramCollection _hologramCatalog;
+    private ILogger _log;
 
     public GameObject ListItemPrefab;
 
     // Use this for initialization
     async void Start()
     {
-        var res = await HologramCatalog.GetHologramsAsync().ConfigureAwait(false);
+        var res = await _hologramCatalog.GetHologramsAsync();
         var collection = gameObject.GetComponent<ObjectCollection>();
         foreach (var r in res)
         {
@@ -33,9 +33,9 @@ public class ObjectData : MonoBehaviour
             obj.transform = cube.transform;
 
             collection.NodeList.Add(obj);
-            log.Log(r.Name);
+            _log.Log(r.Name);
         }
-        log.Log("DONE");
+        _log.Log("DONE");
         collection.UpdateCollection();
     }
 
