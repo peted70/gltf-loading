@@ -1,34 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
-
-public interface IHologram
-{
-    string Name { get; set; }
-}
-
-public interface ILogger
-{
-    void Log(object message);
-}
-
-public class UnityLogger : ILogger
-{
-    public void Log(object message)
-    {
-        Debug.Log(message);
-    }
-}
-
-public interface IHologramCollection
-{
-    Task<IEnumerable<IHologram>> GetHologramsAsync();
-}
-
-public class Hologram : IHologram
-{
-    public string Name { get; set; }
-}
 
 public class HologramCatalog : IHologramCollection
 {
