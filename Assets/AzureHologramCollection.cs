@@ -1,25 +1,50 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage;
+using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
-using Unity3dAzure.StorageServices;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 public class AzureHologramCollection : IHologramCollection
 {
-    private StorageServiceClient _storageClient;
+    private CloudBlobClient _serviceClient;
+    private CloudBlobContainer _container;
 
     public AzureHologramCollection()
     {
-        var account = Environment.GetEnvironmentVariable("");
-        var accessKey = Environment.GetEnvironmentVariable("");
+        var accountName = Environment.GetEnvironmentVariable("HOLOGRAMCOLLECTION_ACCOUNTNAME");
+        var accountKey = Environment.GetEnvironmentVariable("HOLOGRAMCOLLECTION_ACCOUNTKEY");
 
-        _storageClient = new StorageServiceClient(account, accessKey);
+        if (string.IsNullOrEmpty(accountKey) || string.IsNullOrEmpty(accountName))
+        {
+            throw new Exception("You must set HOLOGRAMCOLLECTION_ACCOUNTNAME & HOLOGRAMCOLLECTION_ACCOUNTKEY" + 
+                                "environment variables - these can be found at http://portal.azure.com");
+        }
+
+        ServicePointManager.ServerCertificateValidationCallback = (s, c, ch, pe) => true;
+
+        string connectionString = 
+            string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net",
+            accountName, accountKey);
+        var account = CloudStorageAccount.Parse(connectionString);
+        _serviceClient = account.CreateCloudBlobClient();
+        _container = _serviceClient.GetContainerReference("models");
     }
 
-    public Task<IEnumerable<IHologram>> GetHologramsAsync()
+    public async Task<IEnumerable<IHologram>> GetHologramsAsync()
     {
-        // enumerate the Azure Storage Container..
-        var blobs = _storageClient.GetBlobService();
-        StartCoroutine( blobs.ListBlobs()
+        var results = await _container.ListBlobsSegmentedAsync(null);
+        var list = results.Results;
 
+        return list.Select(item =>
+            {
+                var blob = (CloudBlockBlob)item;
+                return new Hologram
+                {
+                    Name = blob.Name,
+                    Uri = blob.Uri,
+                };
+            });
     }
 }
