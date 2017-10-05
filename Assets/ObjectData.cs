@@ -29,6 +29,11 @@ public class ObjectData : MonoBehaviour
             };
 
             var cube = Instantiate(ListItemPrefab);
+
+            // Set up properties on the instantiated prefab..
+            var text = cube.GetComponentInChildren<TextMesh>();
+            text.text = r.Name;
+
             cube.transform.parent = collection.transform;
             obj.transform = cube.transform;
 
