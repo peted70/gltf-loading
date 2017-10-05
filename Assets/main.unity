@@ -289,6 +289,10 @@ Prefab:
       propertyPath: FilterTags.ValidTags.Array.data[3]
       value: Default
       objectReference: {fileID: 0}
+    - target: {fileID: 11400016, guid: 2effafb42a9bcdd4aafef7457b6efe67, type: 2}
+      propertyPath: HeadZoneSizeIdle
+      value: 0.2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 2effafb42a9bcdd4aafef7457b6efe67, type: 2}
   m_IsPrefabParent: 0
