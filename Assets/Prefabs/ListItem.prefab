@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 114238046536674102}
   - component: {fileID: 114849556864422938}
   - component: {fileID: 114351244719843426}
+  - component: {fileID: 114110966354547722}
   m_Layer: 0
   m_Name: Transform
   m_TagString: Untagged
@@ -260,6 +261,19 @@ TextMesh:
   m_Color:
     serializedVersion: 2
     rgba: 4294967295
+--- !u!114 &114110966354547722
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1138470973523380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fea10e48d7323b8429843ec83e1a5eed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Name: 
+  Uri: 
 --- !u!114 &114238046536674102
 MonoBehaviour:
   m_ObjectHideFlags: 1

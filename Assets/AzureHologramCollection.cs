@@ -22,7 +22,9 @@ public class AzureHologramCollection : IHologramCollection
                                 "environment variables - these can be found at http://portal.azure.com");
         }
 
+#if UNITY_EDITOR
         ServicePointManager.ServerCertificateValidationCallback = (s, c, ch, pe) => true;
+#endif
 
         string connectionString = 
             string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net",
