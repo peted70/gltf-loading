@@ -6,10 +6,15 @@ using Zenject;
 using GLTF;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-//using System.Net.Http;
+
+#if !UNITY_EDITOR
+using System.Net.Http;
+#endif
 
 public class ObjectData : MonoBehaviour
 {
+    private static string ModelString;
+
     [Inject]
     public void Construct(IHologramCollection hologramCatalog, ILogger log)
     {
@@ -42,12 +47,18 @@ public class ObjectData : MonoBehaviour
 
             // Set up properties on the instantiated prefab..
             var data = cube.GetComponentInChildren<ListItemData>();
-            data.Name = r.Name;
-            data.Uri = r.Uri.ToString();
+            if (data != null)
+            {
+                data.Name = r.Name;
+                data.Uri = r.Uri.ToString();
+            }
 
             // Set up properties on the instantiated prefab..
             var text = cube.GetComponentInChildren<TextMesh>();
-            text.text = r.Name;
+            if (text != null)
+            {
+                text.text = r.Name;
+            }
 
             cube.transform.parent = collection.transform;
             obj.transform = cube.transform;
@@ -66,18 +77,26 @@ public class ObjectData : MonoBehaviour
             return;
         var uri = data.Uri;
 
-        var bytes = new byte[10];// await DownloadFileAsync(uri);
+        var bytes = await DownloadFileAsync(uri);
 
         // Download the file from the Uri and load the model into the scene
         var loader = new GLTFLoader(bytes, gameObject.transform.parent);
         StartCoroutine(loader.Load());
     }
 
-    //private async Task<byte[]> DownloadFileAsync(string uri)
-    //{
-    //    var httpClient = new HttpClient();
-    //    var resp = await httpClient.GetAsync(uri);
-    //    var ba = await resp.Content.ReadAsByteArrayAsync();
-    //    return ba;
-    //}
+    private async Task<byte[]> DownloadFileAsync(string uri)
+    {
+#if !UNITY_EDITOR
+        var httpClient = new HttpClient();
+        var resp = await httpClient.GetAsync(uri);
+        var ba = await resp.Content.ReadAsByteArrayAsync();
+
+        var str = Convert.ToBase64String(ba);
+
+#else
+        // Return a fixed model in byte array format..
+        var ba = Convert.FromBase64String(ModelString);
+#endif
+        return ba;
+    }
 }
