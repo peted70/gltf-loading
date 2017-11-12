@@ -409,9 +409,9 @@ MonoBehaviour:
   OrientType: 1
   LayoutType: 0
   IgnoreInactiveTransforms: 1
-  Radius: 2
-  Rows: 3
-  CellWidth: 0.5
+  Radius: 2.59
+  Rows: 2
+  CellWidth: 1
   CellHeight: 0.5
   SphereMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 3}
   CylinderMesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 3}
@@ -439,5 +439,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf219c1651452ea4ca575ff0f93864d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ListItemPrefab: {fileID: 1289613976171082, guid: 8e451704bb54d6842b90e42b8a2cbc78,
+  ListItemPrefab: {fileID: 1230386424774564, guid: 8e451704bb54d6842b90e42b8a2cbc78,
     type: 2}
