@@ -7,9 +7,15 @@ using HoloToolkit.Unity;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR.WSA;
+using UnityEngine.XR.WSA.Persistence;
+using UnityEngine.XR.WSA.Sharing;
+#else
 using UnityEngine.VR.WSA;
 using UnityEngine.VR.WSA.Persistence;
 using UnityEngine.VR.WSA.Sharing;
+#endif
 #endif
 
 
@@ -62,8 +68,10 @@ namespace HoloToolkit.Sharing
 
         #region Unity Methods
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
+
             if (SharingStage.Instance != null)
             {
                 ShowDetailedLogs = SharingStage.Instance.ShowDetailedLogs;

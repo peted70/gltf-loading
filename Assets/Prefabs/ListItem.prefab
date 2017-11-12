@@ -42,6 +42,7 @@ GameObject:
   - component: {fileID: 54348779852124996}
   - component: {fileID: 114238046536674102}
   - component: {fileID: 114849556864422938}
+  - component: {fileID: 114351244719843426}
   m_Layer: 0
   m_Name: Transform
   m_TagString: Untagged
@@ -145,6 +146,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -160,6 +162,7 @@ MeshRenderer:
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -177,6 +180,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -192,6 +196,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -268,6 +273,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Profile: {fileID: 11400000, guid: 8aafca9649a6f8a4eb201590306d44c4, type: 2}
   audioSource: {fileID: 0}
+--- !u!114 &114351244719843426
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1138470973523380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0553e32afece6b644b174dbb454b3230, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114493504283046888
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -282,7 +298,6 @@ MonoBehaviour:
   Profile: {fileID: 11400000, guid: 77feff91688801242922eb00da072bd8, type: 2}
   TargetTransform: {fileID: 4203642974727810}
   Renderer: {fileID: 23729771026603054}
-  MeshFilter: {fileID: 0}
 --- !u!114 &114701830605102480
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -294,9 +309,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e77a98cf320fe9340a55eecfe4567ca4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FilterTag:
-    Tag: Default
-  ButtonState: 4
+  ButtonState: 3
+  ButtonPressFilter: 1
   RequireGaze: 1
   MainCollider: {fileID: 65500386405791176}
   MainRenderer: {fileID: 23729771026603054}

@@ -1,4 +1,4 @@
-﻿using HUX.Collections;
+﻿using HoloToolkit.Unity.Collections;
 using UnityEngine;
 using Zenject;
 
@@ -23,7 +23,7 @@ public class ObjectData : MonoBehaviour
         var collection = gameObject.GetComponent<ObjectCollection>();
         foreach (var r in res)
         {
-            var obj = new ObjectCollection.CollectionNode()
+            var obj = new CollectionNode()
             {
                 Name = r.Name,
             };

@@ -23,14 +23,20 @@ namespace HoloToolkit.Unity
     public class BuildDeployWindow : EditorWindow
     {
         private const float GUISectionOffset = 10.0f;
-        private const string GUIHorizSpacer = "     ";
+        private const string GUIHorizontalSpacer = "     ";
         private const float UpdateBuildsPeriod = 1.0f;
+
+        private enum BuildPlatformEnum
+        {
+            x86 = 1,
+            x64 = 2
+        }
 
         private enum BuildConfigEnum
         {
-            DEBUG = 0,
-            RELEASE = 1,
-            MASTER = 2
+            Debug = 0,
+            Release = 1,
+            Master = 2
         }
 
         #region Properties
@@ -62,7 +68,7 @@ namespace HoloToolkit.Unity
 
         private bool ShouldLogViewBeEnabled
         {
-            get { return !string.IsNullOrEmpty(BuildDeployPrefs.TargetIPs) && !string.IsNullOrEmpty(BuildDeployPrefs.BuildDirectory); }
+            get { return !string.IsNullOrEmpty(BuildDeployPrefs.BuildDirectory); }
         }
 
         private bool LocalIPsOnly { get { return true; } }
@@ -107,7 +113,7 @@ namespace HoloToolkit.Unity
 
         #region Methods
 
-        [MenuItem("HoloToolkit/Build Window", false, 0)]
+        [MenuItem("Mixed Reality Toolkit/Build Window", false, 0)]
         public static void OpenWindow()
         {
             // Dock it next to the Scene View.
@@ -213,16 +219,27 @@ namespace HoloToolkit.Unity
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
 
             // Build directory (and save setting, if it's changed)
             string curBuildDirectory = BuildDeployPrefs.BuildDirectory;
-            string newBuildDirectory = EditorGUILayout.TextField(GUIHorizSpacer + "Build directory", curBuildDirectory);
+            string newBuildDirectory = EditorGUILayout.TextField(new GUIContent(GUIHorizontalSpacer + "Build Directory", "It's recommended to use UWP"), curBuildDirectory);
 
             if (newBuildDirectory != curBuildDirectory)
             {
                 BuildDeployPrefs.BuildDirectory = newBuildDirectory;
                 curBuildDirectory = newBuildDirectory;
             }
+
+            GUI.enabled = Directory.Exists(BuildDeployPrefs.AbsoluteBuildDirectory);
+
+            if (GUILayout.Button("Open Build Directory"))
+            {
+                Process.Start(BuildDeployPrefs.AbsoluteBuildDirectory);
+            }
+
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
 
             // Build SLN button
             using (new EditorGUILayout.HorizontalScope())
@@ -246,7 +263,7 @@ namespace HoloToolkit.Unity
 
                 GUI.enabled = ShouldOpenSLNBeEnabled;
 
-                if (GUILayout.Button("Open SLN", GUILayout.Width(buttonWidth_Quarter)))
+                if (GUILayout.Button("Open Project Solution", GUILayout.Width(buttonWidth_Quarter)))
                 {
                     // Open SLN
                     string slnFilename = Path.Combine(curBuildDirectory, PlayerSettings.productName + ".sln");
@@ -256,7 +273,7 @@ namespace HoloToolkit.Unity
                         var slnFile = new FileInfo(slnFilename);
                         Process.Start(slnFile.FullName);
                     }
-                    else if (EditorUtility.DisplayDialog("Solution Not Found", "We couldn't find the solution. Would you like to Build it?", "Yes, Build", "No"))
+                    else if (EditorUtility.DisplayDialog("Solution Not Found", "We couldn't find the Project's Solution. Would you like to Build the project now?", "Yes, Build", "No"))
                     {
                         // Build SLN
                         EditorApplication.delayCall += () => { BuildDeployTools.BuildSLN(curBuildDirectory); };
@@ -265,7 +282,7 @@ namespace HoloToolkit.Unity
 
                 GUI.enabled = ShouldBuildSLNBeEnabled;
 
-                if (GUILayout.Button("Build Visual Studio SLN", GUILayout.Width(buttonWidth_Half)))
+                if (GUILayout.Button("Build Unity Project", GUILayout.Width(buttonWidth_Half)))
                 {
                     // Build SLN
                     EditorApplication.delayCall += () => { BuildDeployTools.BuildSLN(curBuildDirectory); };
@@ -278,12 +295,12 @@ namespace HoloToolkit.Unity
             GUILayout.BeginVertical();
             GUILayout.Label("APPX");
 
+            GUILayout.BeginHorizontal();
+
             // SDK and MS Build Version(and save setting, if it's changed)
-            string curMSBuildVer = BuildDeployPrefs.MsBuildVersion;
             string currentSDKVersion = EditorUserBuildSettings.wsaUWPSDK;
 
             int currentSDKVersionIndex = 0;
-            int defaultMSBuildVersionIndex = -1;
 
             for (var i = 0; i < windowsSdkPaths.Length; i++)
             {
@@ -293,19 +310,31 @@ namespace HoloToolkit.Unity
                 }
                 else
                 {
-                    if (windowsSdkPaths[i].Equals(currentSDKVersion))
+                    if (windowsSdkPaths[i].Equals("10.0.16299.0"))
                     {
                         currentSDKVersionIndex = i;
-                    }
-
-                    if (windowsSdkPaths[i].Equals("10.0.14393.0"))
-                    {
-                        defaultMSBuildVersionIndex = i;
                     }
                 }
             }
 
-            currentSDKVersionIndex = EditorGUILayout.Popup(GUIHorizSpacer + "SDK Version", currentSDKVersionIndex, windowsSdkPaths);
+            if (currentSDKVersionIndex == 0)
+            {
+                Debug.LogError("Unable to find the required Windows 10 SDK Target!\nPlease be sure to install the 10.0.16299.0 SDK from Visual Studio Installer.");
+            }
+
+            EditorGUILayout.LabelField(GUIHorizontalSpacer + "Required SDK Version: 10.0.16299.0");
+
+            var curScriptingBackend = PlayerSettings.GetScriptingBackend(BuildTargetGroup.WSA);
+            var newScriptingBackend = (ScriptingImplementation)EditorGUILayout.IntPopup(
+                GUIHorizontalSpacer + "Scripting Backend",
+                (int)curScriptingBackend,
+                new[] { "IL2CPP", ".NET" },
+                new[] { (int)ScriptingImplementation.IL2CPP, (int)ScriptingImplementation.WinRTDotNET });
+
+            if (newScriptingBackend != curScriptingBackend)
+            {
+                PlayerSettings.SetScriptingBackend(BuildTargetGroup.WSA, newScriptingBackend);
+            }
 
             string newSDKVersion = windowsSdkPaths[currentSDKVersionIndex];
 
@@ -314,14 +343,8 @@ namespace HoloToolkit.Unity
                 EditorUserBuildSettings.wsaUWPSDK = newSDKVersion;
             }
 
-            string newMSBuildVer = currentSDKVersionIndex <= defaultMSBuildVersionIndex ? BuildDeployTools.DefaultMSBuildVersion : "15.0";
-            EditorGUILayout.LabelField(GUIHorizSpacer + "MS Build Version", newMSBuildVer);
-
-            if (!newMSBuildVer.Equals(curMSBuildVer))
-            {
-                BuildDeployPrefs.MsBuildVersion = newMSBuildVer;
-                curMSBuildVer = newMSBuildVer;
-            }
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
 
             // Build config (and save setting, if it's changed)
             string curBuildConfigString = BuildDeployPrefs.BuildConfig;
@@ -329,26 +352,61 @@ namespace HoloToolkit.Unity
             BuildConfigEnum buildConfigOption;
             if (curBuildConfigString.ToLower().Equals("master"))
             {
-                buildConfigOption = BuildConfigEnum.MASTER;
+                buildConfigOption = BuildConfigEnum.Master;
             }
             else if (curBuildConfigString.ToLower().Equals("release"))
             {
-                buildConfigOption = BuildConfigEnum.RELEASE;
+                buildConfigOption = BuildConfigEnum.Release;
             }
             else
             {
-                buildConfigOption = BuildConfigEnum.DEBUG;
+                buildConfigOption = BuildConfigEnum.Debug;
             }
 
-            buildConfigOption = (BuildConfigEnum)EditorGUILayout.EnumPopup(GUIHorizSpacer + "Build Configuration", buildConfigOption);
+            buildConfigOption = (BuildConfigEnum)EditorGUILayout.EnumPopup(GUIHorizontalSpacer + "Build Configuration", buildConfigOption);
 
-            string newBuildConfig = buildConfigOption.ToString();
+            string buildConfigString = buildConfigOption.ToString();
 
-            if (newBuildConfig != curBuildConfigString)
+            if (buildConfigString != curBuildConfigString)
             {
-                BuildDeployPrefs.BuildConfig = newBuildConfig;
-                curBuildConfigString = newBuildConfig;
+                BuildDeployPrefs.BuildConfig = buildConfigString;
+                curBuildConfigString = buildConfigString;
             }
+
+            // Build Platform (and save setting, if it's changed)
+            string curBuildPlatformString = BuildDeployPrefs.BuildPlatform;
+            BuildPlatformEnum buildPlatformOption = BuildPlatformEnum.x86;
+
+            if (curBuildPlatformString.ToLower().Equals("x86"))
+            {
+                buildPlatformOption = BuildPlatformEnum.x86;
+            }
+            else if (curBuildPlatformString.ToLower().Equals("x64"))
+            {
+                buildPlatformOption = BuildPlatformEnum.x64;
+            }
+
+            buildPlatformOption = (BuildPlatformEnum)EditorGUILayout.EnumPopup(GUIHorizontalSpacer + "Build Platform", buildPlatformOption);
+
+            string newBuildPlatformString;
+
+            switch (buildPlatformOption)
+            {
+                case BuildPlatformEnum.x86:
+                case BuildPlatformEnum.x64:
+                    newBuildPlatformString = buildPlatformOption.ToString();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (newBuildPlatformString != curBuildPlatformString)
+            {
+                BuildDeployPrefs.BuildPlatform = newBuildPlatformString;
+                curBuildPlatformString = newBuildPlatformString;
+            }
+
+            GUILayout.EndHorizontal();
 
             // Build APPX button
             using (new EditorGUILayout.HorizontalScope())
@@ -371,7 +429,7 @@ namespace HoloToolkit.Unity
                 // Increment version
                 EditorGUIUtility.labelWidth = 110;
                 bool curIncrementVersion = BuildDeployPrefs.IncrementBuildVersion;
-                bool newIncrementVersion = EditorGUILayout.Toggle("Increment version", curIncrementVersion);
+                bool newIncrementVersion = EditorGUILayout.Toggle("Increment Version", curIncrementVersion);
 
                 if (newIncrementVersion != curIncrementVersion)
                 {
@@ -385,7 +443,7 @@ namespace HoloToolkit.Unity
                 // Build APPX
                 GUI.enabled = ShouldBuildAppxBeEnabled;
 
-                if (GUILayout.Button("Build APPX from SLN", GUILayout.Width(buttonWidth_Half)))
+                if (GUILayout.Button("Build APPX", GUILayout.Width(buttonWidth_Half)))
                 {
                     // Open SLN
                     string slnFilename = Path.Combine(curBuildDirectory, PlayerSettings.productName + ".sln");
@@ -396,9 +454,10 @@ namespace HoloToolkit.Unity
                         EditorApplication.delayCall += () =>
                             BuildDeployTools.BuildAppxFromSLN(
                                 PlayerSettings.productName,
-                                curMSBuildVer,
+                                BuildDeployTools.DefaultMSBuildVersion,
                                 curForceRebuildAppx,
                                 curBuildConfigString,
+                                curBuildPlatformString,
                                 curBuildDirectory,
                                 curIncrementVersion);
                     }
@@ -426,7 +485,7 @@ namespace HoloToolkit.Unity
             if (!LocalIPsOnly)
             {
                 string newTargetIPs = EditorGUILayout.TextField(
-                    new GUIContent(GUIHorizSpacer + "IP Address(es)", "IP(s) of target devices (e.g. 127.0.0.1;10.11.12.13)"),
+                    new GUIContent(GUIHorizontalSpacer + "IP Address(es)", "IP(s) of target devices (e.g. 127.0.0.1 | 10.11.12.13)"),
                     curTargetIps);
 
                 if (newTargetIPs != curTargetIps)
@@ -466,7 +525,7 @@ namespace HoloToolkit.Unity
                     GUI.enabled = false;
                 }
 
-                var selectedAddressIndex = EditorGUILayout.Popup(GUIHorizSpacer + "IP Address", previouslySavedAddress, addressesToPresent.ToArray());
+                var selectedAddressIndex = EditorGUILayout.Popup(GUIHorizontalSpacer + "IP Address", previouslySavedAddress, addressesToPresent.ToArray());
 
                 if (GUILayout.Button(locatorIsSearching ? "Searching" : "Refresh", GUILayout.Width(buttonWidth_Quarter)))
                 {
@@ -486,12 +545,12 @@ namespace HoloToolkit.Unity
 
             // Username/Password (and save seeings, if changed)
             string curUsername = BuildDeployPrefs.DeviceUser;
-            string newUsername = EditorGUILayout.TextField(GUIHorizSpacer + "Username", curUsername);
+            string newUsername = EditorGUILayout.TextField(GUIHorizontalSpacer + "Username", curUsername);
             string curPassword = BuildDeployPrefs.DevicePassword;
-            string newPassword = EditorGUILayout.PasswordField(GUIHorizSpacer + "Password", curPassword);
+            string newPassword = EditorGUILayout.PasswordField(GUIHorizontalSpacer + "Password", curPassword);
             bool curFullReinstall = BuildDeployPrefs.FullReinstall;
             bool newFullReinstall = EditorGUILayout.Toggle(
-                new GUIContent(GUIHorizSpacer + "Uninstall first", "Uninstall application before installing"), curFullReinstall);
+                new GUIContent(GUIHorizontalSpacer + "Uninstall First", "Uninstall application before installing"), curFullReinstall);
 
             if (newUsername != curUsername ||
                 newPassword != curPassword ||
@@ -505,7 +564,7 @@ namespace HoloToolkit.Unity
             // Build list (with install buttons)
             if (builds.Count == 0)
             {
-                GUILayout.Label(GUIHorizSpacer + "*** No builds found in build directory", EditorStyles.boldLabel);
+                GUILayout.Label(GUIHorizontalSpacer + "*** No builds found in build directory", EditorStyles.boldLabel);
             }
             else
             {
@@ -606,12 +665,30 @@ namespace HoloToolkit.Unity
             // Log file
             using (new EditorGUILayout.HorizontalScope())
             {
-                GUI.enabled = ShouldLogViewBeEnabled && (!locatorIsSearching && locatorHasData || HoloLensUsbConnected);
+                string localLogPath = string.Empty;
+                bool localLogExists = false;
+
+                bool remoteDeviceDetected = !locatorIsSearching && locatorHasData || HoloLensUsbConnected && !string.IsNullOrEmpty(BuildDeployPrefs.TargetIPs);
+                bool isLocalBuild = BuildDeployPrefs.BuildPlatform == BuildPlatformEnum.x64.ToString();
+                if (!remoteDeviceDetected)
+                {
+                    localLogPath = string.Format("%USERPROFILE%\\AppData\\Local\\Packages\\{0}\\TempState\\UnityPlayer.log", PlayerSettings.productName);
+                    localLogExists = File.Exists(localLogPath);
+                }
+
+                GUI.enabled = ShouldLogViewBeEnabled && (remoteDeviceDetected || isLocalBuild && localLogExists);
                 GUILayout.FlexibleSpace();
 
                 if (GUILayout.Button("View Log File", GUILayout.Width(buttonWidth_Full)))
                 {
-                    OpenLogFileForIPs(curTargetIps);
+                    if (remoteDeviceDetected)
+                    {
+                        OpenLogFileForIPs(curTargetIps);
+                    }
+                    else
+                    {
+                        Process.Start(localLogPath);
+                    }
                 }
 
                 GUI.enabled = true;
@@ -652,6 +729,7 @@ namespace HoloToolkit.Unity
                 BuildDeployPrefs.MsBuildVersion,
                 BuildDeployPrefs.ForceRebuild,
                 BuildDeployPrefs.BuildConfig,
+                BuildDeployPrefs.BuildPlatform,
                 BuildDeployPrefs.BuildDirectory,
                 BuildDeployPrefs.IncrementBuildVersion,
                 showDialog: !install))
@@ -726,7 +804,7 @@ namespace HoloToolkit.Unity
             }
 
             Debug.LogError("Unable to find PackageFamilyName in manifest file (" + manifest + ")");
-            return "";
+            return string.Empty;
         }
 
         private void InstallAppOnDevicesList(string buildPath, string[] targetList)
@@ -832,6 +910,7 @@ namespace HoloToolkit.Unity
             {
                 var appPackageDirectories = new List<string>();
                 string[] buildList = Directory.GetDirectories(BuildDeployPrefs.AbsoluteBuildDirectory);
+
                 foreach (string appBuild in buildList)
                 {
                     string appPackageDirectory = appBuild + @"\AppPackages";

@@ -6,8 +6,13 @@ using UnityEngine;
 #if UNITY_WSA
 using System;
 using System.Collections.Generic;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR.WSA;
+using UnityEngine.XR.WSA.Persistence;
+#else
 using UnityEngine.VR.WSA;
 using UnityEngine.VR.WSA.Persistence;
+#endif
 #if !UNITY_EDITOR
 using HoloToolkit.Unity.SpatialMapping;
 #endif
@@ -17,7 +22,7 @@ using HoloToolkit.Unity.SpatialMapping;
 namespace HoloToolkit.Unity
 {
     /// <summary>
-    /// Wrapper around world anchor store to streamline some of the persistence api busy work.
+    /// Wrapper around world anchor store to streamline some of the persistence API busy work.
     /// </summary>
     public class WorldAnchorManager : Singleton<WorldAnchorManager>
     {
@@ -25,6 +30,20 @@ namespace HoloToolkit.Unity
         /// Debug text for displaying information.
         /// </summary>
         public TextMesh AnchorDebugText;
+
+        /// <summary>
+        /// Enables detailed logs in console window.
+        /// </summary>
+        /// <remarks>If the Sharing Service is used, it will inherit the log settings.</remarks>
+        [Tooltip("Enables detailed logs in console window.  If the Sharing Service is used, it will inherit the log settings.")]
+        public bool ShowDetailedLogs;
+
+        /// <summary>
+        /// Enables anchors to be stored from subsequent game sessions.
+        /// </summary>
+        [Tooltip("Enables anchors to be stored from subsequent game sessions.")]
+        public bool PersistentAnchors;
+
 #if UNITY_WSA
         /// <summary>
         /// To prevent initializing too many anchors at once
@@ -61,19 +80,6 @@ namespace HoloToolkit.Unity
         protected Queue<AnchorAttachmentInfo> LocalAnchorOperations = new Queue<AnchorAttachmentInfo>();
 
         /// <summary>
-        /// Enables detailed logs in console window.
-        /// </summary>
-        /// <remarks>If the Sharing Service is used, it will inherit the log settings.</remarks>
-        [Tooltip("Enables detailed logs in console window.  If the Sharing Service is used, it will inherit the log settings.")]
-        public bool ShowDetailedLogs;
-
-        /// <summary>
-        /// Enables anchors to be stored from subsequent game sessions.
-        /// </summary>
-        [Tooltip("Enables anchors to be stored from subsequent game sessions.")]
-        public bool PersistentAnchors;
-
-        /// <summary>
         /// The WorldAnchorStore for the current application.
         /// Can be null when the application starts.
         /// </summary>
@@ -90,6 +96,10 @@ namespace HoloToolkit.Unity
         {
             base.Awake();
             AnchorStore = null;
+        }
+
+        protected virtual void Start()
+        {
             WorldAnchorStore.GetAsync(AnchorStoreReady);
         }
 
@@ -165,6 +175,17 @@ namespace HoloToolkit.Unity
 
         #endregion // Event Callbacks
 #endif
+        /// <summary>
+        /// Generates the name for the anchor.
+        /// If no anchor name was specified, the name of the anchor will be the same as the GameObject's name.
+        /// </summary>
+        /// <param name="gameObjectToAnchor">The GameObject to attach the anchor to.</param>
+        /// <param name="proposedAnchorname">Name of the anchor. If none provided, the name of the GameObject will be used.</param>
+        /// <returns>The name of the newly attached anchor.</returns>
+        public static string GenerateAnchorName(GameObject gameObjectToAnchor, string proposedAnchorname = null)
+        {
+            return string.IsNullOrEmpty(proposedAnchorname) ? gameObjectToAnchor.name : proposedAnchorname;
+        }
 
         /// <summary>
         /// Attaches an anchor to the GameObject.  
@@ -173,7 +194,7 @@ namespace HoloToolkit.Unity
         /// If no anchor name is provided, the name of the anchor will be the same as the GameObject.
         /// </summary>
         /// <param name="gameObjectToAnchor">The GameObject to attach the anchor to.</param>
-        /// <param name="anchorName">Name of the anchor.  If none provided a GUID is generated for you.</param>
+        /// <param name="anchorName">Name of the anchor.  If none provided, the name of the GameObject will be used.</param>
         /// <returns>The name of the newly attached anchor.</returns>
         public string AttachAnchor(GameObject gameObjectToAnchor, string anchorName = null)
         {
@@ -193,7 +214,7 @@ namespace HoloToolkit.Unity
                 Debug.LogWarning("[WorldAnchorManager] AttachAnchor called before anchor store is ready.");
             }
 
-            anchorName = string.IsNullOrEmpty(anchorName) ? anchorName : gameObjectToAnchor.name;
+            anchorName = GenerateAnchorName(gameObjectToAnchor, anchorName);
 
             LocalAnchorOperations.Enqueue(
                 new AnchorAttachmentInfo

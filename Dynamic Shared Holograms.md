@@ -293,9 +293,9 @@ This component allows me to layout a collection of elements using some pre-defin
  ```
 The dependencies, _hologramCatalog and _log are injected using the dependency injection container, Zenject (See previous post). Note that I'm using async/await made available to me by the Unity .NET 4.6 support. I load the data with a call to GetHologramsAsync and for each item returned I instantiate a prefab which is a public field and so can be set in the Unity editor. I create a CollectionNode from the data passed back in each catalog item which I can use to add to the ObjectCollection. Finally, I make a call to UpdateCollection to apply the changes. If I run this now I get something like the following:
 
-         
+<insert screenshot here>         
  
-
+Without any kind of feedback or response from the elements when you gaze at them or when you activate them this all feels broken so let's see how the HUX can help with that. 
 
 5. *Sharing*
 
