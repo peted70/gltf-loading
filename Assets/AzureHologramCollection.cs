@@ -1,10 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage;
+﻿//#if !UNITY_EDITOR
+using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
+using System.Diagnostics;
 
 public class AzureHologramCollection : IHologramCollection
 {
@@ -13,8 +15,8 @@ public class AzureHologramCollection : IHologramCollection
 
     public AzureHologramCollection()
     {
-        var accountName = Environment.GetEnvironmentVariable("HOLOGRAMCOLLECTION_ACCOUNTNAME");
-        var accountKey = Environment.GetEnvironmentVariable("HOLOGRAMCOLLECTION_ACCOUNTKEY");
+        var accountName = "gltfmodels";// Environment.GetEnvironmentVariable("HOLOGRAMCOLLECTION_ACCOUNTNAME");
+        var accountKey = "CRojB54EQeb+nEVcXIpp4mrAQ9iU+OY0u7QqOAxA3RO4rehyX9SWv3a8GrFd6at+fDD4y3o4cgO5fM330JyTSQ==";// Environment.GetEnvironmentVariable("HOLOGRAMCOLLECTION_ACCOUNTKEY");
 
         if (string.IsNullOrEmpty(accountKey) || string.IsNullOrEmpty(accountName))
         {
@@ -36,8 +38,11 @@ public class AzureHologramCollection : IHologramCollection
 
     public async Task<IEnumerable<IHologram>> GetHologramsAsync()
     {
+        Debug.WriteLine("Here 3");
+
         var results = await _container.ListBlobsSegmentedAsync(null);
         var list = results.Results;
+        Debug.WriteLine("Here 4");
 
         return list.Select(item =>
             {
@@ -50,3 +55,4 @@ public class AzureHologramCollection : IHologramCollection
             });
     }
 }
+//#endif
