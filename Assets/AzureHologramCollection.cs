@@ -38,12 +38,8 @@ public class AzureHologramCollection : IHologramCollection
 
     public async Task<IEnumerable<IHologram>> GetHologramsAsync()
     {
-        Debug.WriteLine("Here 3");
-
         var results = await _container.ListBlobsSegmentedAsync(null);
         var list = results.Results;
-        Debug.WriteLine("Here 4");
-
         return list.Select(item =>
             {
                 var blob = (CloudBlockBlob)item;
