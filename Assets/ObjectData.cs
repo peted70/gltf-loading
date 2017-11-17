@@ -6,7 +6,6 @@ using Zenject;
 using GLTF;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Net.Http;
 
 #if !UNITY_EDITOR
 using System.Net.Http;
