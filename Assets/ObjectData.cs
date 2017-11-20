@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityGLTF;
+using HoloToolkit.Unity.InputModule;
 
 #if !UNITY_EDITOR
 using System.Net.Http;
@@ -30,6 +31,7 @@ public class ObjectData : MonoBehaviour
 
     public GameObject ListItemPrefab;
     public GameObject SceneRoot;
+    public GameObject SceneParentPrefab;
 
     // Use this for initialization
     async void Start()
@@ -74,25 +76,23 @@ public class ObjectData : MonoBehaviour
         collection.UpdateCollection();
     }
 
-    private async void OnButtonPressed(GameObject obj)
+    private void OnButtonPressed(GameObject obj)
     {
         var data = obj.GetComponent<ListItemData>();
         if (data == null)
             return;
         var uri = data.Uri;
 
-        var gltfComponent = SceneRoot.GetComponent<UnityGLTF.GLTFComponent>();
+        var go = GameObject.Instantiate(SceneParentPrefab);
+        go.transform.parent = SceneRoot.transform;
+        //go.transform.Translate(obj.transform.position);
 
+        go.AddComponent<BoxCollider>();
+        go.AddComponent<TapToPlace>().IsBeingPlaced = true;
+
+        var gltfComponent = go.GetComponent<UnityGLTF.GLTFComponent>();
         gltfComponent.Url = uri;
         StartCoroutine(gltfComponent.Load());
-
-        //var bytes = await DownloadFileAsync(uri);
-
-        //Debugger.Break();
-
-        //// Download the file from the Uri and load the model into the scene
-        //var loader = new GLTFLoader(bytes, gameObject.transform.parent);
-        //StartCoroutine(loader.Load());
     }
 
     private async Task<byte[]> DownloadFileAsync(string uri)
