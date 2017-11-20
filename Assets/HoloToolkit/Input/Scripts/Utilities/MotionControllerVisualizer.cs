@@ -304,12 +304,14 @@ namespace HoloToolkit.Unity.InputModule
 
             controllerModelGameObject = new GameObject();
             controllerModelGameObject.name = "glTFController";
+#if USE_CONTROLLER
             GLTFComponentStreamingAssets gltfScript = controllerModelGameObject.AddComponent<GLTFComponentStreamingAssets>();
             gltfScript.ColorMaterial = GLTFMaterial;
             gltfScript.NoColorMaterial = GLTFMaterial;
             gltfScript.GLTFData = fileBytes;
 
             yield return gltfScript.LoadModel();
+#endif
 
             FinishControllerSetup(controllerModelGameObject, source.handedness.ToString(), source.id);
         }
@@ -335,7 +337,7 @@ namespace HoloToolkit.Unity.InputModule
         }
 #endif
 
-        private void FinishControllerSetup(GameObject controllerModelGameObject, string handedness, uint id)
+            private void FinishControllerSetup(GameObject controllerModelGameObject, string handedness, uint id)
         {
             var parentGameObject = new GameObject
             {

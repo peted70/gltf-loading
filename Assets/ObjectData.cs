@@ -7,6 +7,7 @@ using GLTF;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityGLTF;
 
 #if !UNITY_EDITOR
 using System.Net.Http;
@@ -28,6 +29,7 @@ public class ObjectData : MonoBehaviour
     private ILogger _log;
 
     public GameObject ListItemPrefab;
+    public GameObject SceneRoot;
 
     // Use this for initialization
     async void Start()
@@ -79,13 +81,18 @@ public class ObjectData : MonoBehaviour
             return;
         var uri = data.Uri;
 
-        var bytes = await DownloadFileAsync(uri);
+        var gltfComponent = SceneRoot.GetComponent<UnityGLTF.GLTFComponent>();
 
-        Debugger.Break();
+        gltfComponent.Url = uri;
+        StartCoroutine(gltfComponent.Load());
 
-        // Download the file from the Uri and load the model into the scene
-        var loader = new GLTFLoader(bytes, gameObject.transform.parent);
-        StartCoroutine(loader.Load());
+        //var bytes = await DownloadFileAsync(uri);
+
+        //Debugger.Break();
+
+        //// Download the file from the Uri and load the model into the scene
+        //var loader = new GLTFLoader(bytes, gameObject.transform.parent);
+        //StartCoroutine(loader.Load());
     }
 
     private async Task<byte[]> DownloadFileAsync(string uri)
