@@ -206,16 +206,31 @@ namespace UnityGLTF
             // Experiment with fitting the scene into a prescribed size by accumulating
             // all of the scenes nodes bounding boxes and then scaling the root node
             // (I think this would be better as a mode to scale vertices but not for now..)
-            var allRenderersInScene = sceneObj.GetComponentsInChildren<MeshRenderer>();
-            Bounds box = new Bounds(Vector3.zero, Vector3.zero);
+            var allRenderersInScene = sceneObj.GetComponentsInChildren<Renderer>(false);
+
+            Bounds? box = null;
+
             foreach (var renderer in allRenderersInScene)
             {
-                box.Encapsulate(renderer.bounds);
+                //CreateBox(sceneObj.transform, renderer.bounds);
+
+                if (!box.HasValue)
+                {
+                    box = new Bounds(renderer.bounds.center, renderer.bounds.size);
+                }
+                else
+                {
+                    var val = box.Value;
+                    val.Encapsulate(renderer.bounds);
+                    box = val;
+                }
             }
+
+            //CreateBox(sceneObj.transform, box);
 
             // Now, for each individual mesh we can move the pivot to the bottom/centre 
             // w.r.t the vertices. This way we can easily place models on a flat surface
-            var allMeshesInScene = sceneObj.GetComponentsInChildren<MeshFilter>();
+            var allMeshesInScene = sceneObj.GetComponentsInChildren<MeshFilter>(false);
             foreach (var renderer in allMeshesInScene)
             {
                 var bbox = renderer.mesh.bounds;
@@ -223,41 +238,56 @@ namespace UnityGLTF
                 // Calculate the distances we need to shift all of the vertices in 
                 // each direction to get them centred in x and z and have them sitting
                 // at zero in the y-axis
-                float adjustY = bbox.min.y;
-                float adjustx = bbox.min.x + (bbox.max.x - bbox.min.x) * 0.5f;
-                float adjustZ = bbox.min.z + (bbox.max.z - bbox.min.z) * 0.5f;
+                float adjustY = bbox.center.y;
+                float adjustx = bbox.center.x;
+                float adjustZ = bbox.center.z;
 
-                var verts = renderer.mesh.vertices;
-                for (int i=0;i<verts.Length;i++)
-                {
-                    verts[i].x = verts[i].x - adjustx;
-                    verts[i].y = verts[i].y - adjustY;
-                    verts[i].z = verts[i].z - adjustZ;
-                }
+                //var verts = renderer.mesh.vertices;
+                //for (int i = 0; i < verts.Length; i++)
+                //{
+                //    verts[i].x = verts[i].x - adjustx;
+                //    verts[i].y = verts[i].y - adjustY;
+                //    verts[i].z = verts[i].z - adjustZ;
+                //}
 
-                renderer.mesh.vertices = verts;
+                //renderer.mesh.vertices = verts;
             }
 
-            Vector3 targetSize = Vector3.one;
-            Vector3 sceneBoundsSize = box.max - box.min;
 
-            sceneObj.transform.localScale = sceneObj.transform.localScale * 
-                (componentMax(targetSize) / componentMax(sceneBoundsSize));
+            Vector3 targetSize = Vector3.one;
+            Vector3 sceneBoundsSize = box.Value.max - box.Value.min;
+
+            float ratioX = targetSize.x / sceneBoundsSize.x;
+            float ratioY = targetSize.y / sceneBoundsSize.y;
+            float ratioZ = targetSize.z / sceneBoundsSize.z;
+
+            float biggest = Math.Min(ratioZ, Math.Min(ratioX, ratioY));
+
+            //sceneObj.transform.localScale = sceneObj.transform.localScale * 
+            //    (componentMax(targetSize) / componentMax(sceneBoundsSize));
+
+            //float f = componentMax(div(targetSize, sceneBoundsSize));
+
+            sceneObj.transform.localScale = sceneObj.transform.localScale * biggest;
 
             _lastLoadedScene = sceneObj;
-		}
+        }
 
-    float componentMax(Vector3 a)
-    {
-        return Mathf.Max(Mathf.Max(a.x, a.y), a.z);
-    }
+        private void CreateBox(Transform parent, Bounds? box)
+        {
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var mr = cube.GetComponent<MeshRenderer>();
+            var mat = Resources.Load<UnityEngine.Material>("mat");
+            mr.material = mat;
+            cube.transform.parent = parent;
+            cube.transform.Translate(box.Value.center);
+            cube.transform.localScale = new Vector3(
+                box.Value.max.x - box.Value.min.x,
+                box.Value.max.y - box.Value.min.y,
+                box.Value.max.z - box.Value.min.z);
+        }
 
-    Vector3 div(Vector3 a, Vector3 b)
-    {
-        return new Vector3(a.x / b.x, a.y / b.y, a.z / b.z);
-    }
-
-    protected virtual void BuildAttributesForMeshes()
+        protected virtual void BuildAttributesForMeshes()
 		{
 			for (int i = 0; i < _root.Meshes.Count; ++i)
 			{
