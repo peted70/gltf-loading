@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityGLTF;
 using HoloToolkit.Unity.InputModule;
+using System.IO;
 
 #if !UNITY_EDITOR
 using System.Net.Http;
@@ -41,9 +42,10 @@ public class ObjectData : MonoBehaviour
         var collection = gameObject.GetComponent<ObjectCollection>();
         foreach (var r in res)
         {
+            var friendlyName = Path.GetFileNameWithoutExtension(r.Name);
             var obj = new CollectionNode()
             {
-                Name = r.Name,
+                Name = friendlyName,
             };
 
             var cube = Instantiate(ListItemPrefab);
@@ -55,7 +57,7 @@ public class ObjectData : MonoBehaviour
             var data = cube.GetComponentInChildren<ListItemData>();
             if (data != null)
             {
-                data.Name = r.Name;
+                data.Name = friendlyName;
                 data.Uri = r.Uri.ToString();
             }
 
@@ -63,7 +65,7 @@ public class ObjectData : MonoBehaviour
             var text = cube.GetComponentInChildren<TextMesh>();
             if (text != null)
             {
-                text.text = r.Name;
+                text.text = friendlyName;
             }
 
             cube.transform.parent = collection.transform;
@@ -90,8 +92,15 @@ public class ObjectData : MonoBehaviour
 
         var gltfComponent = go.GetComponent<UnityGLTF.GLTFComponent>();
         gltfComponent.Url = uri;
+            
+        // Set state to 'Loading'
+        data.SetLoading(true);
+
         StartCoroutine(gltfComponent.Load(() =>
         {
+            // Remove 'Loading' state
+            data.SetLoading(false);
+
             go.AddComponent<BoxCollider>();
             var ttp = go.AddComponent<TapToPlaceWithEvent>();
             ttp.IsBeingPlaced = true;
