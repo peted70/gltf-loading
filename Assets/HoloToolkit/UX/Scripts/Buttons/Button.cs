@@ -285,7 +285,9 @@ namespace HoloToolkit.Unity.Buttons
 
             if (OnButtonPressed != null)
             {
-                OnButtonPressed(gameObject);
+                // PETED : edited
+                if (bRelease == true)
+                    OnButtonPressed(gameObject);
             }
 
             if(OnButtonClicked != null)

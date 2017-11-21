@@ -460,7 +460,7 @@ MonoBehaviour:
   OrientType: 1
   LayoutType: 0
   IgnoreInactiveTransforms: 1
-  Radius: 2.59
+  Radius: 1.6
   Rows: 2
   CellWidth: 1
   CellHeight: 0.5

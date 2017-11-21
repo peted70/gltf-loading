@@ -32,7 +32,7 @@ public class ObjectData : MonoBehaviour
     public GameObject ListItemPrefab;
     public GameObject SceneRoot;
     public GameObject SceneParentPrefab;
-
+     
     // Use this for initialization
     async void Start()
     {
@@ -78,6 +78,8 @@ public class ObjectData : MonoBehaviour
 
     private void OnButtonPressed(GameObject obj)
     {
+        _log.Log("OnButtonPressed for " + obj.name);
+
         var data = obj.GetComponent<ListItemData>();
         if (data == null)
             return;
@@ -91,7 +93,13 @@ public class ObjectData : MonoBehaviour
         StartCoroutine(gltfComponent.Load(() =>
         {
             go.AddComponent<BoxCollider>();
-            go.AddComponent<TapToPlace>().IsBeingPlaced = true;
+            var ttp = go.AddComponent<TapToPlaceWithEvent>();
+            ttp.IsBeingPlaced = true;
+            ttp.Placed += (o, e) =>
+            {
+                Destroy(go.GetComponent<TapToPlaceWithEvent>());
+                Destroy(go.GetComponent<BoxCollider>());
+            };
         }));   
     }
 

@@ -158,7 +158,8 @@ namespace HoloToolkit.Unity.InputModule
             RemoveWorldAnchor();
         }
 
-        private void StopPlacing()
+        // PETED : edited - made this protected virtual
+        protected virtual void StopPlacing()
         {
             var layerCacheTarget = PlaceParentOnTap ? ParentGameObjectToPlace : gameObject;
             layerCacheTarget.ApplyLayerCacheRecursively(layerCache);
