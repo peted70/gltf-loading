@@ -254,7 +254,7 @@ namespace UnityGLTF
             }
 
 
-            Vector3 targetSize = Vector3.one;
+            Vector3 targetSize = Vector3.one / 3;
             Vector3 sceneBoundsSize = box.Value.max - box.Value.min;
 
             float ratioX = targetSize.x / sceneBoundsSize.x;

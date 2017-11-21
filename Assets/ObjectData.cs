@@ -85,14 +85,14 @@ public class ObjectData : MonoBehaviour
 
         var go = GameObject.Instantiate(SceneParentPrefab);
         go.transform.parent = SceneRoot.transform;
-        //go.transform.Translate(obj.transform.position);
-
-        go.AddComponent<BoxCollider>();
-        go.AddComponent<TapToPlace>().IsBeingPlaced = true;
 
         var gltfComponent = go.GetComponent<UnityGLTF.GLTFComponent>();
         gltfComponent.Url = uri;
-        StartCoroutine(gltfComponent.Load());
+        StartCoroutine(gltfComponent.Load(() =>
+        {
+            go.AddComponent<BoxCollider>();
+            go.AddComponent<TapToPlace>().IsBeingPlaced = true;
+        }));   
     }
 
     private async Task<byte[]> DownloadFileAsync(string uri)

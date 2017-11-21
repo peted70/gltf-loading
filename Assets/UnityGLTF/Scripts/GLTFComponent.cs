@@ -22,7 +22,7 @@ namespace UnityGLTF {
 
         public bool addColliders = false;
 
-		public IEnumerator Load()
+		public IEnumerator Load(Action CompleteCallback)
 		{
 			GLTFSceneImporter loader = null;
 			FileStream gltfStream = null;
@@ -68,6 +68,7 @@ namespace UnityGLTF {
             loader.SetShaderForMaterialType(GLTFSceneImporter.MaterialType.CommonConstant, GLTFConstant);
 			loader.MaximumLod = MaximumLod;
 			yield return loader.Load(-1, Multithreaded);
+            CompleteCallback();
 			if(gltfStream != null)
 			{
 #if WINDOWS_UWP
